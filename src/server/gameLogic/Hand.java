@@ -1,4 +1,4 @@
-package GameLogic;
+package server.gameLogic;
 
 public enum Hand {
     ROCK(null),

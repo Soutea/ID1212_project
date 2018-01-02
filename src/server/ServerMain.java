@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,15 +33,16 @@ public class ServerMain {
 
 
     public static void main(String args[]) throws Exception {
-
-        System.out.println(ServerMain.welcome); //welcome message to the player
-        ServerMain.port = ServerMain.getPort(); //server getting a port
+        /* Welcome message to the player & giving the server a port */
+        System.out.println(ServerMain.welcome);
+        ServerMain.port = ServerMain.getPort();
 
         /* Create new server socket with a status message */
         ServerSocket welcomeSocket = new ServerSocket(ServerMain.port);
         System.out.println("\n We're up and running on port " + welcomeSocket.getLocalPort() + " ...");
 
         while (!welcomeSocket.isClosed()) {
+            /* 3 players */
             Socket[] clients = new Socket[3];
 
             for (int i = 0; i < clients.length; i++) {
@@ -57,7 +58,9 @@ public class ServerMain {
                             + clients[i].getLocalPort() + ") has joined ... " + nextMsg);
                 }
 
+
             }
+            /* Start a new game */
             new GameThread(clients).start();
         }
     }

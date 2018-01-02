@@ -1,7 +1,6 @@
-package Server;
+package server;
 
-import GameLogic.Hand;
-import GameLogic.Result;
+import server.gameLogic.Game;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -10,19 +9,20 @@ import java.net.Socket;
 
 public class GameThread extends Thread {
 
+    /* Array of sockets*/
     private final Socket[] clients;
 
-
+    /* Constructor */
     GameThread(Socket[] clients) {
         this.clients = clients;
-        //this.client1 = client1;
-        //this.client2 = client2;
-        setDaemon(true); // förhindrar att spelet är igång när gamla spelare håller spelet igång
+        setDaemon(true);
     }
 
-
+    /* */
     public void run() {
         try {
+            Game game = new Game();
+
             DataOutputStream[] outputs = new DataOutputStream[clients.length];
             BufferedReader[] inputs = new BufferedReader[clients.length];
             for (int i = 0; i < clients.length; i++) {
@@ -30,36 +30,23 @@ public class GameThread extends Thread {
                 inputs[i] = new BufferedReader(new InputStreamReader(clients[i].getInputStream()));
             }
 
-            int[] totalPoints = new int[clients.length];
             while (true) {
-                Hand[] currentHands = new Hand[clients.length];
+                game.beginRound();
                 for (int i = 0; i < clients.length; i++) {
                     // Get client inputs
-                    currentHands[i] = Hand.valueOf(inputs[i].readLine().toUpperCase()); //få händerna
+                    game.setPlayerHand(i, inputs[i].readLine());
                 }
-
-                int[] currentPoints = new int[clients.length];
-                for (int i = 0; i < currentHands.length; i++) { //räkna poängen
-                    for (int j = 0; j < currentHands.length; j++) {
-                        if (currentHands[i].beats(currentHands[j]) == Result.WIN) { //bryr oss om detta fall
-                            currentPoints[i]++;
-                            totalPoints[i]++;
-                        }
-                    }
-                }
-
+                game.finishRound();
 
                 // Send responses in uppercase and close sockets
                 for (int i = 0; i < clients.length; i++) {
-                    outputs[i].writeBytes(totalPoints[i] + "," + currentPoints[i] + "\r\n");
+                    outputs[i].writeBytes(game.getTotalPoints(i) + "," + game.getCurrentPoints(i) + "\r\n");
                     outputs[i].flush();
                     // clients[i].close();
                 }
             }
         } catch (
-                Exception error)
-
-        {
+                Exception error) {
             throw new RuntimeException(error);
         }
     }
